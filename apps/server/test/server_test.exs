@@ -1,6 +1,12 @@
 defmodule ServerTest do
   use ExUnit.Case
 
+  @server_name :tg_server
+  setup do
+    {:ok, server_pid} = Server.Worker.start_link(@server_name)
+    {:ok, process: server_pid}
+  end
+
   test "Test levenstein distance 0" do
     assert 0 == Levenstein.distance("Sample string", "Sample string")
   end
@@ -22,5 +28,32 @@ defmodule ServerTest do
     assert true  == Levenstein.are_similar?(
       "Soffia",
       "Sofia")
+  end
+
+  test "Test Server.Worker ranking no players" do
+    reply = GenServer.call({:global, @server_name}, :ranking)
+    assert reply == []
+  end
+
+  test "Test Server.Worker ranking with players" do
+    GenServer.call({:global, @server_name}, {:join, "Pesho"})
+
+    assert [{"Pesho", 0}] == GenServer.call({:global, @server_name}, :ranking)
+  end
+
+  test "Test can join a game" do
+    assert [] == GenServer.call({:global, @server_name}, :list_players)
+    GenServer.call({:global, @server_name}, {:join, "Pesho"})
+    assert ["Pesho"] == GenServer.call({:global, @server_name}, :list_players)
+
+    GenServer.call({:global, @server_name}, {:join, "Zorro"})
+    assert ["Pesho", "Zorro"] == GenServer.call({:global, @server_name}, :list_players)
+  end
+
+  test "Test can leave a game" do
+    assert [] == GenServer.call({:global, @server_name}, :list_players)
+    GenServer.call({:global, @server_name}, {:join, "Pesho"})
+    GenServer.call({:global, @server_name}, {:leave, "Pesho"})
+    assert [] == GenServer.call({:global, @server_name}, :list_players)
   end
 end
