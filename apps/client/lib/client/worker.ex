@@ -12,11 +12,13 @@ defmodule Client.Worker do
     {:ok, %{nick: nick, connection_ref: nil}}
   end
 
-  def handle_info({:DOWN, _, _, _, _}, %{connection_ref: nil} = state) do
+  def handle_info({:DOWN, _ref, _process, _pid, _reason}, %{connection_ref: nil} = state) do
+    IO.puts "SOMEONE KILLED ME WTF MAN"
     {:noreply, state}
   end
 
-  def handle_info({:DOWN, ref, _, _,  _}, %{connection_ref: ref} = state) do
+  def handle_info({:DOWN, ref, _process, _pid,  _reason}, %{connection_ref: ref} = state) do
+    IO.puts "SOMEONE KILLED ME WTF MAN.... I'LL BACK"
     {:noreply, retry_connect(state)}
   end
 
@@ -28,6 +30,11 @@ defmodule Client.Worker do
     {:noreply, retry_connect(state)}
   end
 
+  def handle_info(_msg, state) do
+     IO.puts "unknown message"
+     {:noreply, state}
+   end
+
   def handle_call(:connect, _from, state) do
     connect_to_server(state)
   end
@@ -35,6 +42,11 @@ defmodule Client.Worker do
   def handle_call(:leave, _, %{nick: nick, connection_ref: nil} = state) do
     reply = GenServer.call({:global, @server_name}, {:leave, nick})
     {:reply, reply, state}
+  end
+
+  def handle_call(:ranking, _, state) do
+     reply = GenServer.call({:global, @server_name}, :ranking)
+     {:reply, reply, state}
   end
 
   def handle_call(:leave, _, %{nick: nick, connection_ref: ref} = state) do
@@ -89,7 +101,7 @@ defmodule Client.Worker do
 
     new_state =
       case reply do
-        {:connected, _} ->
+        :successful_join ->
           ref = Process.monitor(:global.whereis_name(@server_name))
           %{state | connection_ref: ref}
         _ -> state

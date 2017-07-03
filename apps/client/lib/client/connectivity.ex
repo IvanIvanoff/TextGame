@@ -11,9 +11,7 @@ defmodule Client.Connectivity do
 
   def connect_to_server_node(server_name, server_location) do
     Logger.info("Try to connecto to #{server_name}@#{server_location}")
-    Node.connect(:"#{server_name}@#{server_location}") ||
-    Node.connect(:"#{server_name}_slave_one@#{server_location}") ||
-    Node.connect(:"#{server_name}_slave_two@#{server_location}")
+    Node.connect(:"#{server_name}@#{server_location}")
   end
 
   defp lift_client() do

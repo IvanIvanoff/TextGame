@@ -11,15 +11,13 @@ defmodule Server.Application do
 
     case Server.Connectivity.lift_server(server_name,server_location) do
       {:ok, _} ->
+        Logger.info("TextGame Server is started!")
         children = [
           worker(Server.Worker, [:tg_server, game_states])
         ]
 
         opts = [strategy: :one_for_one, name: Server.Supervisor]
         Supervisor.start_link(children, opts)
-
-        Logger.info("TextGame Server is started!")
-
       err -> {:error, err}
     end
   end

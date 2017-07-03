@@ -16,8 +16,10 @@ defmodule Client.Mixfile do
   end
 
   def application do
-    [extra_applications: [:logger],
-     mod: {Client.Application, ["127.0.0.1"]}]
+    [
+      extra_applications: [:logger],
+      mod: {Client.Application, ["tg_server", "127.0.0.1"]}
+    ]
   end
 
   defp deps do
@@ -25,6 +27,9 @@ defmodule Client.Mixfile do
   end
 
   defp aliases do
-    [test: "test --no-start"]
+    [
+      test: "test --no-start",
+      
+    ]
   end
 end

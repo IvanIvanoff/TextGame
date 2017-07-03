@@ -17,7 +17,7 @@ defmodule Server.Mixfile do
 
   def application do
     [extra_applications: [:logger],
-     mod: {Server, []}]
+     mod: {Server.Application, ["tg_server", "127.0.0.1"]}]
   end
 
   defp deps do

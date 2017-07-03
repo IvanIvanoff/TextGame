@@ -81,9 +81,14 @@ defmodule Server.Worker do
       false ->
         Logger.info( "Player #{name} has joined the game!" )
         players = Map.put(players, name, node(from))
-        ranking = Map.put(ranking, name, 0)
+
+        # Save the result of a player. If there exist such record do not override it
+        case Map.get(ranking, name) do
+           false -> Map.put(ranking,name,0)
+        end
+
         send_message(node(from), "GameServer", question)
-        {:reply, :successful_join, %Game{ state | players: players, ranking: ranking}}
+        {:reply, :successful_join, %Game{ state | players: players}}
     end
   end
 
@@ -95,13 +100,15 @@ defmodule Server.Worker do
     is returned
   """
   def handle_call({:leave, name}, {from, _},
-                  %Game{players: players} = state) do
+                  %Game{players: players,
+                        ranking: ranking} = state) do
     case Map.has_key?(players, name) &&
     node(from) == Map.get(players, name) do
       true ->
         Logger.info( "Player #{name} has left the game!" )
-        new_players = Map.delete(players, name)
-        {:reply, :successful_leave, %Game{state | players: new_players}}
+        players = Map.delete(players, name)
+        ranking = Map.delete(ranking, name)
+        {:reply, :successful_leave, %Game{state | players: players, ranking: ranking}}
       false ->
         {:reply, :not_joined, state}
       end

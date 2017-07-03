@@ -10,11 +10,11 @@ defmodule Client.Application do
     end
   end
 
-  defp start_client(name) do
+  defp start_client(nick) do
     import Supervisor.Spec, warn: false
 
     children = [
-      worker(Client.Worker, [name, :tg_client])
+      worker(Client.Worker, [nick, :tg_client])
     ]
 
     opts = [strategy: :one_for_one, name: Client.Supervisor]

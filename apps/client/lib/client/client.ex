@@ -7,21 +7,21 @@ defmodule Client do
 
     Client.Application.start(nil, [server_name, server_location])
     Process.sleep(500)
-    connect()
+    join()
   end
 
   @doc """
     Connect to the game server
   """
-  def connect do
+  def join do
     GenServer.call(@client, :connect)
   end
 
   @doc """
     Disconnect from the game server
   """
-  def disconnect do
-    GenServer.call(@client, :disconnect)
+  def leave do
+    GenServer.call(@client, :leave)
   end
 
   @doc """

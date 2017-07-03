@@ -1,4 +1,8 @@
 defmodule Levenstein do
+  @moduledoc """
+    Calculate the levenstein distance of two strings.
+  """
+
   def distance(str1, str1), do: 0
   def distance(str, ""), do: String.length(str)
   def distance("", str), do: String.length(str)
