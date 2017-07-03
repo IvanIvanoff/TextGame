@@ -1,9 +1,11 @@
 defmodule Client do
   @client :tg_client
-  @server_location "127.0.0.1"
 
   def lift() do
-    Client.Application.start(nil, [@server_location])
+    server_name = System.get_env("TG_SERVER_NAME") || "tg_server"
+    server_location = System.get_env("TG_SERVER_LOCATION") || "127.0.0.1"
+
+    Client.Application.start(nil, [server_name, server_location])
     Process.sleep(500)
     connect()
   end
@@ -19,7 +21,7 @@ defmodule Client do
     Disconnect from the game server
   """
   def disconnect do
-    GenServer.call(@clientt, :disconnect)
+    GenServer.call(@client, :disconnect)
   end
 
   @doc """
