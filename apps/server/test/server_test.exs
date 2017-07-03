@@ -3,7 +3,7 @@ defmodule ServerTest do
 
   @server_name :tg_server
   setup do
-    {:ok, server_pid} = Server.Worker.start_link(@server_name)
+    {:ok, server_pid} = Server.start(nil,nil)
     {:ok, process: server_pid}
   end
 
