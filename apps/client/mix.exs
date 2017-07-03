@@ -17,7 +17,7 @@ defmodule Client.Mixfile do
 
   def application do
     [extra_applications: [:logger],
-     mod: {Client, ["127.0.0.1"]}]
+     mod: {Client.Application, ["127.0.0.1"]}]
   end
 
   defp deps do
