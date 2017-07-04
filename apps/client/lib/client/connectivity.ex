@@ -1,5 +1,6 @@
 defmodule Client.Connectivity do
   require Logger
+
   def name do
     case Node.alive? do
       true ->
@@ -9,8 +10,10 @@ defmodule Client.Connectivity do
     end
   end
 
-  def connect_to_server_node(server_name, server_location) do
-    Logger.info("Try to connecto to #{server_name}@#{server_location}")
+  def connect_to_server_node() do
+    server_name = System.get_env("TG_SERVER_NAME") || "tg_server"
+    server_location = System.get_env("TG_SERVER_LOCATION") || "127.0.0.1"
+    Logger.info("Try to connect to #{server_name}@#{server_location}")
     Node.connect(:"#{server_name}@#{server_location}")
   end
 
@@ -27,7 +30,7 @@ defmodule Client.Connectivity do
   defp random_name do
     letters = ~w(a b c d e f g h i j k l m n o p q r s t u v w x y z)
 
-    (1..10)
+    (1..5)
     |> Enum.reduce([], fn(_, acc) -> [Enum.random(letters) | acc] end)
     |> Enum.join("")
   end

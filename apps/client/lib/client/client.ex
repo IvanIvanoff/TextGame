@@ -1,15 +1,6 @@
 defmodule Client do
   @client :tg_client
 
-  def lift() do
-    server_name = System.get_env("TG_SERVER_NAME") || "tg_server"
-    server_location = System.get_env("TG_SERVER_LOCATION") || "127.0.0.1"
-
-    Client.Application.start(nil, [server_name, server_location])
-    Process.sleep(500)
-    join()
-  end
-
   @doc """
     Connect to the game server
   """

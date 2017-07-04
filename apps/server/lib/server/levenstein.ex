@@ -23,17 +23,14 @@ defmodule Levenstein do
   end
 
   def are_similar?(str1, str1), do: true
+  def are_similar?(str1, str2) when length(str1) < 4 or length(str2) < 4, do: false
   def are_similar?(str1, str2) do
     len1 = String.length(str1)
     len2 = String.length(str2)
-    len_diff =
-      len1 - len2
-      |> abs
+    len_diff = len1 - len2 |> abs
 
     case len_diff do
-      x when x > 3 -> false
-      x when x < 2 and len1 <  7 -> true
-      x when x < 3 and len1 >= 7 -> true
+      x when x < 3 -> true
       _ -> false
       end
   end

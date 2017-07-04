@@ -1,5 +1,6 @@
 defmodule Client.Worker do
   use GenServer
+  require Logger
 
   @server_name Application.get_env(:client, :server_name, :tg_server)
   @reconnect_timeout Application.get_env(:client, :reconnect_timeout, 5000)
@@ -9,16 +10,18 @@ defmodule Client.Worker do
   end
 
   def init(nick) do
-    {:ok, %{nick: nick, connection_ref: nil}}
+    state = %{nick: nick, connection_ref: nil}
+    {:successful_join, new_state} = connect_to_server(state)
+    {:ok, new_state}
   end
 
   def handle_info({:DOWN, _ref, _process, _pid, _reason}, %{connection_ref: nil} = state) do
-    IO.puts "SOMEONE KILLED ME WTF MAN"
+    Logger.info "MAN OVERBOARD"
     {:noreply, state}
   end
 
   def handle_info({:DOWN, ref, _process, _pid,  _reason}, %{connection_ref: ref} = state) do
-    IO.puts "SOMEONE KILLED ME WTF MAN.... I'LL BACK"
+    Logger.info "MAN OVERBOARD.... I'LL BACK"
     {:noreply, retry_connect(state)}
   end
 
@@ -27,16 +30,18 @@ defmodule Client.Worker do
   end
 
   def handle_info(:try_connect, state) do
+    IO.puts "Trying to reconnect..."
     {:noreply, retry_connect(state)}
   end
 
   def handle_info(_msg, state) do
-     IO.puts "unknown message"
-     {:noreply, state}
-   end
+    Logger.info "Unknown message received. Ignoring it."
+    {:noreply, state}
+  end
 
   def handle_call(:connect, _from, state) do
-    connect_to_server(state)
+    {:successful_join, new_state} = connect_to_server(state)
+    {:reply, :successful_join, new_state}
   end
 
   def handle_call(:leave, _, %{nick: nick, connection_ref: nil} = state) do
@@ -89,6 +94,11 @@ defmodule Client.Worker do
   end
 
   defp connect_to_server(%{nick: nick} = state) do
+    Logger.info("Connecting to server #{@server_name}")
+
+    Client.Connectivity.connect_to_server_node()
+    :global.sync()
+
     reply =
       case :global.whereis_name(@server_name) do
         :undefined -> :server_unreachable
@@ -107,18 +117,18 @@ defmodule Client.Worker do
         _ -> state
       end
 
-    {:reply, reply, new_state}
+  {reply, new_state}
   end
 
   defp retry_connect(%{connection_ref: nil} = state), do: state
 
   defp retry_connect(state) do
     case connect_to_server(state) do
-      {_, {:connected, _}, new_state} ->
+      {:successful_join, new_state} ->
         IO.puts("Connected to server.")
         new_state
       _ ->
-        IO.puts("Server down, diconnected. Trying to connect...")
+        IO.puts("Unsuccessful connect. Trying to connect again...")
         Process.send_after(self(), :try_connect, @reconnect_timeout)
         state
     end
