@@ -1,9 +1,14 @@
 defmodule ServerTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
 
   @server_name :tg_server
   setup do
-    {:ok, server_pid} = Server.start(nil,nil)
+    game_states = [{"What is the capital of Bulgaria?", "Sofia"},
+                   {"What is three times three minus 8", "1"},
+                   {"Who let the dogs out", "who"}]
+
+    {:ok, server_pid} = Server.Worker.start_link(:"tg_server", game_states)
+
     {:ok, process: server_pid}
   end
 

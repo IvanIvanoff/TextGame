@@ -83,12 +83,12 @@ defmodule Server.Worker do
         players = Map.put(players, name, node(from))
 
         # Save the result of a player. If there exist such record do not override it
-        case Map.get(ranking, name) do
-           false -> Map.put(ranking,name,0)
+        if !Map.has_key?(ranking, name) do
+          ranking = Map.put(ranking,name,0)
         end
 
         send_message(node(from), "GameServer", question)
-        {:reply, :successful_join, %Game{ state | players: players}}
+        {:reply, :successful_join, %Game{ state | players: players, ranking: ranking}}
     end
   end
 
