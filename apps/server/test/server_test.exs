@@ -7,7 +7,7 @@ defmodule ServerTest do
                    {"What is three times three minus 8", "1"},
                    {"Who let the dogs out", "who"}]
 
-    {:ok, server_pid} = Server.Worker.start_link(:  "tg_server", game_states)
+    {:ok, server_pid} = Server.Worker.start_link(:"tg_server", game_states)
 
     {:ok, process: server_pid}
   end
