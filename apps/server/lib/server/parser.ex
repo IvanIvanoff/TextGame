@@ -8,10 +8,16 @@ defmodule Parser do
 
     Also, parser generators or using ABNF grammars will take more time to research, write and debug than writing that
     little piece of $h!7 lib.
+
+    ## Examples
+
+    iex> Parser.parse("{test123, test456, [elem1,elem2]")
+    [{"test123", "test456", ["elem1", "elem2"]}]
   """
 
   @doc """
-    TODO: Write comments, Vanyo.
+    Parses string, containg a sequence of tuples, each containg three elements -
+    two strings and a list
   """
   def parse(str) do
     parse(str, "", "", "", [], [], :expect_bracket)
@@ -32,14 +38,18 @@ defmodule Parser do
     parse(str, "", "", "", [], list, :expect_bracket)
   end
 
-
   defp parse("[" <> rest, arg1, arg2, _hint, _hints, list, :expect_bracket) do
      parse(rest, arg1, arg2, "", [], list, :hints)
   end
 
+  # So empty list of hints is parsed corectly
+  defp parse("]" <> rest, arg1, arg2, "", hints, list, :hints) do
+    parse(rest, arg1, arg2, "", hints, list, :expect_bracket)
+  end
+
   defp parse("]" <> rest, arg1, arg2, hint, hints, list, :hints) do
     hints = [String.reverse(hint) |> String.trim |hints]
-     parse(rest, arg1, arg2, "", hints, list, :expect_bracket)
+    parse(rest, arg1, arg2, "", hints, list, :expect_bracket)
   end
 
   defp parse("," <> rest, arg1, arg2, hint, hints, list, :first) do

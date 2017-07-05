@@ -16,12 +16,14 @@ defmodule Server.Mixfile do
   end
 
   def application do
-    [extra_applications: [:logger],
-     mod: {Server.Application, ["tg_server", "127.0.0.1"]}]
+    [extra_applications: [:logger, :httpoison],
+     mod: {Server.Application, []}]
   end
 
   defp deps do
-    []
+    [
+      {:httpoison, "~> 0.12"}
+    ]
   end
 
   defp aliases do

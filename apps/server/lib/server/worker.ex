@@ -31,11 +31,7 @@ defmodule Server.Worker do
     The list is sorted by the score.
   """
   def handle_call(:ranking, _, %Game{ranking: ranking} = state) do
-    sorted_ranking =
-      Map.to_list(ranking)
-      |> Enum.sort(fn {_, x}, {_, y} -> x < y end)
-
-    {:reply, sorted_ranking, state}
+    {:reply, sort_ranking(ranking), state}
   end
 
   @doc """
@@ -138,6 +134,14 @@ defmodule Server.Worker do
     If so, a message is sent only to the player, saying to him that he is close to
     the right answer.
   """
+
+  def handle_cast( {:send_message, name, message},
+                   %Game{ players: players,
+                          states: []} = state) do
+    broadcast(players, name, message)
+    {:noreply, state}          
+  end
+
   def handle_cast( {:send_message, name, message},
                    %Game{ players: players,
                           states: [{_, answer, _}|rest],
@@ -157,8 +161,11 @@ defmodule Server.Worker do
 
         case length(rest) do
           0 ->
-            [{winner, score}] = get_winner(ranking)
+            IO.inspect get_winner(ranking)
+            winner="Ivan"
+            score=5
             broadcast(players, "GameServer", "The game is over! Winner is: #{winner} with score #{score} ")
+            {:noreply, %Game{state | ranking: ranking, states: []}}
           _ ->
             # Get the new question
             [{new_question, _,_}|_] = rest
@@ -213,10 +220,11 @@ defmodule Server.Worker do
   end
 
   defp get_winner(ranking) when is_map(ranking) do
-    sorted_ranking =
-      Map.to_list(ranking)
-      |> Enum.sort(fn {_, x}, {_, y} -> x < y end)
+    sort_ranking(ranking) |> hd
+  end
 
-    Enum.take(sorted_ranking, 1)
+  defp sort_ranking(ranking) do
+    Map.to_list(ranking)
+    |> Enum.sort(fn {_, x}, {_, y} -> x > y end)
   end
 end

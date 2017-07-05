@@ -2,14 +2,12 @@ defmodule Server.Application do
   use Application
   require Logger
 
-  def start(_type, [server_name, server_location]) do
+  def start(_type, _args) do
     import Supervisor.Spec, warn: false
 
-    game_states = [{"What is the capital of Bulgaria?", "Sofia",["It begins with 'S'"]},
-                   {"What is three times three minus 8", "1",[]},
-                   {"Who let the dogs out", "who",[]}]
+    game_states = GameProvider.get
 
-    case Server.Connectivity.lift_server(server_name,server_location) do
+    case Server.Connectivity.lift_server() do
       {:ok, _} ->
         Logger.info("TextGame Server is started!")
         children = [

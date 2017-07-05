@@ -61,4 +61,10 @@ defmodule ServerTest do
     GenServer.call({:global, @server_name}, {:leave, "Pesho"})
     assert [] == GenServer.call({:global, @server_name}, :list_players)
   end
+
+  test "Test parser" do
+    expected = [{"Ivan", "mn", ["tap"]},{"huehue","hue", []}]
+    string = "{Ivan, mn, [tap]}, {huehue, hue, []}"
+    assert expected == Parser.parse(string)
+  end
 end
