@@ -3,9 +3,9 @@ defmodule ServerTest do
 
   @server_name :tg_server
   setup do
-    game_states = [{"What is the capital of Bulgaria?", "Sofia"},
-                   {"What is three times three minus 8", "1"},
-                   {"Who let the dogs out", "who"}]
+    game_states = [{"What is the capital of Bulgaria?", "Sofia",[]},
+                   {"What is three times three minus 8", "1",[]},
+                   {"Who let the dogs out", "who",[]}]
 
     {:ok, server_pid} = Server.Worker.start_link(:"tg_server", game_states)
 

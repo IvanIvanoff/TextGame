@@ -29,6 +29,10 @@ defmodule Client do
     GenServer.call(@client, :ranking)
   end
 
+  def hint do
+    GenServer.cast(@client, :hint)
+  end
+
   @doc """
     Display all players in the current game
   """

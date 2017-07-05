@@ -5,9 +5,9 @@ defmodule Server.Application do
   def start(_type, [server_name, server_location]) do
     import Supervisor.Spec, warn: false
 
-    game_states = [{"What is the capital of Bulgaria?", "Sofia"},
-                   {"What is three times three minus 8", "1"},
-                   {"Who let the dogs out", "who"}]
+    game_states = [{"What is the capital of Bulgaria?", "Sofia",["It begins with 'S'"]},
+                   {"What is three times three minus 8", "1",[]},
+                   {"Who let the dogs out", "who",[]}]
 
     case Server.Connectivity.lift_server(server_name,server_location) do
       {:ok, _} ->

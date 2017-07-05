@@ -42,7 +42,7 @@ defmodule Server.Worker do
     Returns sorted list of tuples. Each tuple contains a player's name and its score.
     The list is sorted by the score.
   """
-  def handle_call(:get_question, _, %Game{states: [{question,_}|_]} = state) do
+  def handle_call(:get_question, _, %Game{states: [{question,_,_}|_]} = state) do
     {:reply, question, state}
   end
 
@@ -74,7 +74,7 @@ defmodule Server.Worker do
   def handle_call({:join, name}, {from, _},
                   %Game{ players: players,
                          ranking: ranking,
-                         states: [{question,_}|_]} = state) do
+                         states: [{question,_,_}|_]} = state) do
     case Map.has_key?(players, name) do
       true ->
         {:reply, :name_taken, state}
@@ -140,7 +140,7 @@ defmodule Server.Worker do
   """
   def handle_cast( {:send_message, name, message},
                    %Game{ players: players,
-                          states: [{_, answer}|rest],
+                          states: [{_, answer, _}|rest],
                           ranking: ranking} = state) do
 
     Logger.info( "Player #{name} says '#{message}'")
@@ -161,7 +161,7 @@ defmodule Server.Worker do
             broadcast(players, "GameServer", "The game is over! Winner is: #{winner} with score #{score} ")
           _ ->
             # Get the new question
-            [{new_question, _}|_] = rest
+            [{new_question, _,_}|_] = rest
 
             # Broadcast the new question
             broadcast(players, "GameServer", "The new question is: '#{new_question}'")
@@ -180,11 +180,24 @@ defmodule Server.Worker do
       end
   end
 
+  def handle_cast(:hint,
+                  %Game{states: [{_,_,[]}|_],
+                        players: players} = state) do
+
+     broadcast(players, "GameServer", "There are no hints!")
+     {:noreply, state}
+  end
+
+  def handle_cast(:hint,
+                  %Game{states: [{question,answer,[hint|hints]}|rest],
+                        players: players} = state) do
+
+     broadcast(players, "GameServer", "Hint: " <> hint)
+     {:noreply, %Game{state | states: [{question,answer, hints}|rest]}}
+  end
+
   ##################################################
 
-  @doc """
-    Sends a message to all receivers
-  """
   defp broadcast(receivers, from, message) do
     receivers
     |> Enum.map( fn {_, registered_node} ->
@@ -195,16 +208,10 @@ defmodule Server.Worker do
     |> Enum.map(&Task.await/1)
   end
 
-  @doc """
-    Sends a message to a given receiver
-  """
   defp send_message(registered_node, from, message) do
     GenServer.cast({@client, registered_node}, {:new_message, from, to_string(message) })
   end
 
-  @doc """
-    Returns the player with most scores
-  """
   defp get_winner(ranking) when is_map(ranking) do
     sorted_ranking =
       Map.to_list(ranking)

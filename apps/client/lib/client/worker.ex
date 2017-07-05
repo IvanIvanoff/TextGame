@@ -79,6 +79,11 @@ defmodule Client.Worker do
     {:noreply, state}
   end
 
+  def handle_cast(:hint, state) do
+    GenServer.cast({:global, @server_name}, :hint)
+    {:noreply, state}
+  end
+
   def handle_cast({:new_message, nick_name, message}, state) do
     IO.write(IO.ANSI.red())
     IO.puts("\n#{nick_name}> #{message}")
