@@ -7,7 +7,8 @@ defmodule Client.Connectivity do
     variables TG_CLIENT_NAME and TG_CLIENT_LOCATION. If they do not exist generate
     a random 5 letter name and use localhost as location
   """
-  def name do
+  @spec name() :: nil | bitstring()
+  def name() do
     case Node.alive? do
       true ->
         Logger.info("Node #{self()} is alive!")
@@ -25,6 +26,7 @@ defmodule Client.Connectivity do
     Note that the default values for the server coincide with the default values
     with which the server is started
   """
+  @spec connect_to_server_node() :: boolean() | nil | bitstring()
   def connect_to_server_node() do
     if !Node.alive? do
       lift_client()
@@ -39,6 +41,7 @@ defmodule Client.Connectivity do
 
   defp lift_client() do
     name = System.get_env("TG_CLIENT_NAME") || random_name()
+    System.put_env("TG_CLIENT_NAME", name)
     location = System.get_env("TG_CLIENT_LOCATION") || "127.0.0.1"
 
     Logger.info("Lifing #{name}@#{location}")

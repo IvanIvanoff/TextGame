@@ -46,8 +46,14 @@ defmodule Server.Worker do
   end
 
   @doc """
-    Returns sorted list of tuples. Each tuple contains a player's name and its score.
-    The list is sorted by the score.
+    Returns the current question, if any.
+  """
+  def handle_call(:get_question, _, %Game{states: []} = state) do
+    {:reply, "No more questions", state}
+  end
+
+  @doc """
+    Returns the current question, if any.
   """
   def handle_call(:get_question, _, %Game{states: [{question,_,_}|_]} = state) do
     {:reply, question, state}

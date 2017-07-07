@@ -22,7 +22,8 @@ defmodule Client.Worker do
   end
 
   @doc """
-    Do not crash
+    Do not crash. Process is monitored and :DOWN is received when it stops.
+    TODO: Remove player from players, but not from ranking!
   """
   def handle_info({:DOWN, _ref, _process, _pid, _reason}, %{connection_ref: nil} = state) do
     Logger.info "MAN OVERBOARD"

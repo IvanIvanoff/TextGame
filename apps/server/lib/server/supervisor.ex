@@ -2,10 +2,17 @@ defmodule Server.Supervisor do
   use Supervisor
   require Logger
 
+  @doc """
+    This function is called by `Server.Application.start/2` and its result is returned by it.
+  """
+  @spec start_link() :: Supervisor.on_start
   def start_link() do
     Supervisor.start_link(__MODULE__, nil, name: __MODULE__)
   end
 
+  @doc """
+    Initiate and start the server supervisor
+  """
   def init(_args) do
     game_states = GameProvider.get
 

@@ -43,8 +43,12 @@ defmodule Levenstein do
     len2 = String.length(str2)
     len_diff = len1 - len2 |> abs
 
-    case len_diff do
-      x when x < 3 -> true
+    if(len_diff > 2) do
+      false
+    end
+
+    case distance(str1,str2) do
+      x when x < 2 -> true
       _ -> false
       end
   end

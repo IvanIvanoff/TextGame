@@ -4,28 +4,32 @@ defmodule Client do
   @doc """
     Connect to the game server
   """
-  def join do
+  @spec question?() :: :successful_join | :name_taken
+  def join() do
     GenServer.call(@client, :connect)
   end
 
   @doc """
     Disconnect from the game server
   """
-  def leave do
+  @spec leave() :: :not_joined | :successful_leave
+  def leave() do
     GenServer.call(@client, :leave)
   end
 
   @doc """
     Query the current question.
   """
-  def question? do
+  @spec question?() :: bitstring()
+  def question?() do
     GenServer.call(@client, :get_question)
   end
 
   @doc """
     Query the current score ranking.
   """
-  def ranking do
+  @spec ranking() :: iodata()
+  def ranking() do
     list = GenServer.call(@client, :ranking)
     IO.puts(IO.ANSI.blue())
     IO.puts("Ranking of all players that has played in this game:")
@@ -37,14 +41,16 @@ defmodule Client do
   @doc """
     Query a hint about the current question.
   """
-  def hint do
+  @spec hint() :: :ok
+  def hint() do
     GenServer.cast(@client, :hint)
   end
 
   @doc """
     Display all players in the current game
   """
-  def list_players do
+  @spec list_players() :: iodata()
+  def list_players() do
     list = GenServer.call(@client, :list_players)
 
     IO.puts(IO.ANSI.blue())
@@ -58,6 +64,7 @@ defmodule Client do
     Send a message to all players. If the message matches the answer to the
     current question, points are awarded to the sender.
   """
+  @spec send(bitstring()) :: :ok
   def send(message) do
     GenServer.cast(@client, {:send_message, message})
   end
