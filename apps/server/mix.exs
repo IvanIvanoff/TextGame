@@ -22,8 +22,7 @@ defmodule Server.Mixfile do
 
   defp deps do
     [
-      {:httpoison, "~> 0.12"},
-      {:csv, "~> 2.0.0"}
+      {:httpoison, "~> 0.12"}
     ]
   end
 
