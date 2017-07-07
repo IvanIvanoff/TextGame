@@ -62,21 +62,33 @@ defmodule Client.Worker do
     {:noreply, state}
   end
 
+  @doc """
+    Connect to game server
+  """
   def handle_call(:connect, _from, state) do
     {:successful_join, new_state} = connect_to_server(state)
     {:reply, :successful_join, new_state}
   end
 
-  def handle_call(:leave, _, %{nick: nick, connection_ref: nil} = state) do
-    reply = GenServer.call({:global, @server_name}, {:leave, nick})
-    {:reply, reply, state}
-  end
-
+  @doc """
+    Queries about the current ranking in sorted order
+  """
   def handle_call(:ranking, _, state) do
      reply = GenServer.call({:global, @server_name}, :ranking)
      {:reply, reply, state}
   end
 
+  @doc """
+    Leave the game room
+  """
+  def handle_call(:leave, _, %{nick: nick, connection_ref: nil} = state) do
+    reply = GenServer.call({:global, @server_name}, {:leave, nick})
+    {:reply, reply, state}
+  end
+
+  @doc """
+    Leave the game room
+  """
   def handle_call(:leave, _, %{nick: nick, connection_ref: ref} = state) do
     reply = GenServer.call({:global, @server_name}, {:leave, nick})
     Process.demonitor(ref)
@@ -84,29 +96,44 @@ defmodule Client.Worker do
     {:reply, reply, %{state | connection_ref: nil}}
   end
 
+  @doc """
+    Queries what is the current question
+  """
   def handle_call(:get_question, _from, state) do
     reply = GenServer.call({:global, @server_name}, :get_question)
 
     {:reply, reply, state}
   end
 
+  @doc """
+    Queries a list of all players
+  """
   def handle_call(:list_players, _from, state) do
     reply = GenServer.call({:global, @server_name}, :list_players)
 
     {:reply, reply, state}
   end
 
+  @doc """
+    Sends a message to the server
+  """
   def handle_cast({:send_message, message}, %{nick: nick} = state) do
     GenServer.cast({:global, @server_name}, {:send_message, nick, message})
 
     {:noreply, state}
   end
 
+  @doc """
+    Queries the server about a hint, if any
+  """
   def handle_cast(:hint, state) do
     GenServer.cast({:global, @server_name}, :hint)
     {:noreply, state}
   end
 
+  @doc """
+    Puts new messages to the screen
+  """
   def handle_cast({:new_message, nick_name, message}, state) do
     IO.write(IO.ANSI.red())
     IO.puts("\n#{nick_name}> #{message}")
@@ -120,6 +147,10 @@ defmodule Client.Worker do
     reason
   end
 
+  ##############################
+  ########## PRIVATE ###########
+  ##############################
+
   defp connect_to_server(%{nick: nick} = state) do
     Logger.info("Connecting to server #{@server_name}")
     Process.sleep(1000) #testing purposes
@@ -131,7 +162,6 @@ defmodule Client.Worker do
     # from all nodes. This function can be called when new nodes are added to the network.
     :global.sync()
 
-
     reply =
       case :global.whereis_name(@server_name) do
         :undefined -> :server_unreachable
@@ -141,7 +171,7 @@ defmodule Client.Worker do
               Logger.info("Server is alive")
               GenServer.call({:global, @server_name}, {:join, nick})
             false ->
-              Logger.info("Server is not alive") 
+              Logger.info("Server is not alive")
               :server_unreachable
           end
       end

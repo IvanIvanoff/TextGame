@@ -25,6 +25,18 @@ defmodule Server.Worker do
 
   #########################
 
+  def handle_info({:DOWN, _ref, _process, _pid,  _reason}, state) do
+    Logger.info("Somebody left the game")
+    #%Game{players: players} = state
+    #IO.inspect  players |> Enum.find( fn{_key,value} -> value == node(pid) end) |> hd
+
+    #{name,_} = players |> Enum.find( fn{_key,value} -> value == node(ref) end) |> hd
+    #IO.inspect name
+    #new_players = Map.delete(players, name)
+    #{:noreply, %Game{state|players: new_players}}
+    {:noreply, state}
+  end
+
   @doc """
     Returns sorted list of tuples. Each tuple contains a player's name and its score.
     The list is sorted by the score.
@@ -66,18 +78,21 @@ defmodule Server.Worker do
     If the name is not taken, the player is added with 0 score and the current
     question is sent only to him or her. The atom :successful_join is returned
   """
-  def handle_call({:join, name}, {from, _},
+  def handle_call({:join, name}, {from, _ref},
                   %Game{ players: players,
                          ranking: ranking,
                          states: [{question,_,_}|_]} = state) do
     node_from = node(from)
+
+    # Receive :DOWN when the process dies.
+    Process.monitor(from)
 
     # Handles the case that ate my time. When client's process was restarted nobody sent
     # :leave so when he or she tried to connect again :name_taken was returned
     case Map.has_key?(players, name) do
       true ->
         case Map.get(players,name) do
-          ^ node_from -> {:reply, :successful_join, state}
+          ^node_from -> {:reply, :successful_join, state}
           _ -> {:reply, :name_taken, state}
         end
 

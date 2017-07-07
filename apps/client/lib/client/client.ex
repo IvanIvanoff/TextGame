@@ -26,7 +26,12 @@ defmodule Client do
     Query the current score ranking.
   """
   def ranking do
-    GenServer.call(@client, :ranking)
+    list = GenServer.call(@client, :ranking)
+    IO.puts(IO.ANSI.blue())
+    IO.puts("Ranking of all players that has played in this game:")
+    IO.puts(IO.ANSI.green())
+    list |> Enum.each(&print_tuple/1)
+    IO.puts(IO.ANSI.reset())
   end
 
   @doc """
@@ -42,6 +47,7 @@ defmodule Client do
   def list_players do
     list = GenServer.call(@client, :list_players)
 
+    IO.puts(IO.ANSI.blue())
     IO.puts("Players in the game:")
     IO.puts(IO.ANSI.green())
     list |> Enum.each(&IO.puts/1)
@@ -54,5 +60,13 @@ defmodule Client do
   """
   def send(message) do
     GenServer.cast(@client, {:send_message, message})
+  end
+
+  ##############################
+  ########## PRIVATE ###########
+  ##############################
+
+  defp print_tuple({name, score}) do
+    IO.puts( "#{name} : #{score}")
   end
 end
