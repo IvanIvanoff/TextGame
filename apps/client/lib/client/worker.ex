@@ -5,35 +5,58 @@ defmodule Client.Worker do
   @server_name Application.get_env(:client, :server_name, :tg_server)
   @reconnect_timeout Application.get_env(:client, :reconnect_timeout, 5000)
 
-  def start_link(nick, name) do
-    GenServer.start_link(__MODULE__, nick, name: name)
+  def start_link(name, client_name \\ :tg_client) do
+    GenServer.start_link(__MODULE__, name, name: client_name)
   end
 
+  @doc """
+    Returns the initial state of the client. It contains ref for the connection
+  """
   def init(nick) do
+    Logger.info("Client.Worker initializing")
     state = %{nick: nick, connection_ref: nil}
-    {:successful_join, new_state} = connect_to_server(state)
-    {:ok, new_state}
+    case connect_to_server(state) do
+      {:successful_join, new_state} -> {:ok, new_state}
+       err -> err
+    end
   end
 
+  @doc """
+    Do not crash
+  """
   def handle_info({:DOWN, _ref, _process, _pid, _reason}, %{connection_ref: nil} = state) do
     Logger.info "MAN OVERBOARD"
     {:noreply, state}
   end
 
+  @doc """
+    The server, pointed to by ref, is down, try to reconnect
+  """
   def handle_info({:DOWN, ref, _process, _pid,  _reason}, %{connection_ref: ref} = state) do
     Logger.info "MAN OVERBOARD.... I'LL BACK"
-    {:noreply, retry_connect(state)}
+    {:noreply, try_reconnect(state)}
   end
 
-  def handle_info(:try_connect, %{connection_ref: nil} = state) do
-    {:noreply, state}
+  @doc """
+    Try to connect to a server, but connection_ref IS nil. Call connect_to_server which
+    will locate and connect to a game server
+  """
+  def handle_info(:try_reconnect, %{connection_ref: nil} = state) do
+    {:successful_join, new_state} = connect_to_server(state)
+    {:noreply, new_state}
   end
 
-  def handle_info(:try_connect, state) do
+  @doc """
+    Try to connect to server when connection_ref is NOT nil. Just call try_reconnect
+  """
+  def handle_info(:try_reconnect, state) do
     IO.puts "Trying to reconnect..."
-    {:noreply, retry_connect(state)}
+    {:noreply, try_reconnect(state)}
   end
 
+  @doc """
+    Handle unexpected messages by just printing and ignoring them.
+  """
   def handle_info(_msg, state) do
     Logger.info "Unknown message received. Ignoring it."
     {:noreply, state}
@@ -94,23 +117,32 @@ defmodule Client.Worker do
 
   def terminate(reason, %{nick: nick}) do
     GenServer.call({:global, @server_name}, {:leave, nick})
-
     reason
   end
 
   defp connect_to_server(%{nick: nick} = state) do
     Logger.info("Connecting to server #{@server_name}")
-
+    Process.sleep(1000) #testing purposes
     Client.Connectivity.connect_to_server_node()
+
+    # Synchronizes the global name server with all nodes known to this node.
+    # These are the nodes that are returned from erlang:nodes().
+    # When this function returns, the global name server receives global information
+    # from all nodes. This function can be called when new nodes are added to the network.
     :global.sync()
+
 
     reply =
       case :global.whereis_name(@server_name) do
         :undefined -> :server_unreachable
         pid when is_pid(pid) ->
           case server_alive?(pid) do
-            true -> GenServer.call({:global, @server_name}, {:join, nick})
-            false -> :server_unreachable
+            true ->
+              Logger.info("Server is alive")
+              GenServer.call({:global, @server_name}, {:join, nick})
+            false ->
+              Logger.info("Server is not alive") 
+              :server_unreachable
           end
       end
 
@@ -125,16 +157,17 @@ defmodule Client.Worker do
   {reply, new_state}
   end
 
-  defp retry_connect(%{connection_ref: nil} = state), do: state
+  defp try_reconnect(%{connection_ref: nil} = state), do: state
 
-  defp retry_connect(state) do
+  defp try_reconnect(state) do
+    Logger.info("Try reconnect")
     case connect_to_server(state) do
       {:successful_join, new_state} ->
         IO.puts("Connected to server.")
         new_state
       _ ->
         IO.puts("Unsuccessful connect. Trying to connect again...")
-        Process.send_after(self(), :try_connect, @reconnect_timeout)
+        Process.send_after(self(), :try_reconnect, @reconnect_timeout)
         state
     end
   end

@@ -9,7 +9,7 @@ defmodule Server.Worker do
   end
 
   @doc """
-
+    Start supervisor
   """
   @spec start_link(bitstring(), list() ) :: GenServer.on_start
   def start_link(name, states) do
@@ -70,12 +70,20 @@ defmodule Server.Worker do
                   %Game{ players: players,
                          ranking: ranking,
                          states: [{question,_,_}|_]} = state) do
+    node_from = node(from)
+
+    # Handles the case that ate my time. When client's process was restarted nobody sent
+    # :leave so when he or she tried to connect again :name_taken was returned
     case Map.has_key?(players, name) do
       true ->
-        {:reply, :name_taken, state}
+        case Map.get(players,name) do
+          ^ node_from -> {:reply, :successful_join, state}
+          _ -> {:reply, :name_taken, state}
+        end
+
       false ->
-        Logger.info( "Player #{name} has joined the game!" )
-        players = Map.put(players, name, node(from))
+        Logger.info( " Player #{name} has joined the game!" )
+        players = Map.put(players, name, node_from)
 
         # Save the result of a player. If there exist such record do not override it
         if !Map.has_key?(ranking, name) do

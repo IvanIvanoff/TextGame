@@ -3,7 +3,7 @@ defmodule ServerTest do
 
   @server_name :tg_server
   setup do
-    game_states = [{"What is the capital of Bulgaria?", "Sofia",[]},
+    game_states = [{"What is the capital of Bulgaria?", "Sofia",["Begins with S"]},
                    {"What is three times three minus 8", "1",[]},
                    {"Who let the dogs out", "who",[]}]
 
@@ -44,6 +44,14 @@ defmodule ServerTest do
     GenServer.call({:global, @server_name}, {:join, "Pesho"})
 
     assert [{"Pesho", 0}] == GenServer.call({:global, @server_name}, :ranking)
+  end
+
+  test "Test Server.Worker ranking with right answer" do
+    GenServer.call({:global, @server_name}, {:join, "Pesho"})
+    GenServer.cast({:global, @server_name}, {:send_message, "Pesho", "Sofia"})
+    ranking = GenServer.call({:global, @server_name}, :ranking)
+
+    assert [{"Pesho", 1}] == ranking
   end
 
   test "Test can join a game" do

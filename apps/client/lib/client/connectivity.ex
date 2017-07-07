@@ -10,6 +10,7 @@ defmodule Client.Connectivity do
   def name do
     case Node.alive? do
       true ->
+        Logger.info("Node #{self()} is alive!")
         to_string(Node.self()) |> String.split("@") |> List.first
       false ->
         lift_client()
@@ -25,6 +26,11 @@ defmodule Client.Connectivity do
     with which the server is started
   """
   def connect_to_server_node() do
+    if !Node.alive? do
+      lift_client()
+    end
+
+    Logger.info("Current node is alive? #{Node.alive?}")
     server_name = System.get_env("TG_SERVER_NAME") || "tg_server"
     server_location = System.get_env("TG_SERVER_LOCATION") || "127.0.0.1"
     Logger.info("Try to connect to #{server_name}@#{server_location}")
@@ -34,6 +40,8 @@ defmodule Client.Connectivity do
   defp lift_client() do
     name = System.get_env("TG_CLIENT_NAME") || random_name()
     location = System.get_env("TG_CLIENT_LOCATION") || "127.0.0.1"
+
+    Logger.info("Lifing #{name}@#{location}")
 
     case Node.start(:"#{name}@#{location}") do
       {:ok, pid} when is_pid(pid) -> name
