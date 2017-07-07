@@ -1,8 +1,16 @@
 defmodule Levenstein do
   @moduledoc """
-    Calculate the levenstein distance of two strings.
+    A module, containing some functions to calulate and work with leveinstain distance
+
+    Levenshtein distance (LD) is a measure of the similarity between two strings,
+    which we will refer to as the source string (s) and the target string (t).
+    The distance is the number of deletions, insertions, or substitutions required
+    to transform s into t
   """
 
+  @doc """
+    Returns a whole positive number which is the levenstein distance of the two strings
+  """
   def distance(str1, str1), do: 0
   def distance(str, ""), do: String.length(str)
   def distance("", str), do: String.length(str)
@@ -22,6 +30,12 @@ defmodule Levenstein do
     ])
   end
 
+  @doc """
+    Test if two strings are similar based on their levenstein distance.
+    Always return false if one of the strings is with length less than 3.
+    Otherwise implement some additional logic for checking wheter or not they are
+    similar
+  """
   def are_similar?(str1, str1), do: true
   def are_similar?(str1, str2) when length(str1) < 4 or length(str2) < 4, do: false
   def are_similar?(str1, str2) do
@@ -36,7 +50,10 @@ defmodule Levenstein do
   end
 
 
-  ###########
+  ##############################
+  ########## PRIVATE ###########
+  ##############################
+
   defp first_letter_check(one_letter, two_letter) do
     case one_letter == two_letter do
       true -> 0

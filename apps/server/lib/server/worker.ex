@@ -17,10 +17,9 @@ defmodule Server.Worker do
   end
 
   @doc """
-
+    Initiate the game with the given states
   """
-  @spec init(list() ) :: term()
-  def init(states) do
+  def init(states \\ []) do
     {:ok, %Game{states: states}}
   end
 
@@ -111,7 +110,7 @@ defmodule Server.Worker do
   end
 
   @doc """
-    Used to query if a given name is taken. Returns atoms :taken or :not_taken
+    Query if a given name is taken. Returns atoms :taken or :not_taken
   """
   def handle_call({:name_taken, name},
                   {from, _},
@@ -126,6 +125,17 @@ defmodule Server.Worker do
   end
 
   @doc """
+    When the game states is a empty list, send_message only broadcasts the message
+    to all active players.
+  """
+  def handle_cast( {:send_message, name, message},
+                   %Game{ players: players,
+                          states: []} = state) do
+    broadcast(players, name, message)
+    {:noreply, state}
+  end
+
+  @doc """
     Sends a message to all players, including the sender.
     Check if the message matches the answer to the question. If so so - a point is
     given to the player and the new question is broadcasted.
@@ -134,14 +144,6 @@ defmodule Server.Worker do
     If so, a message is sent only to the player, saying to him that he is close to
     the right answer.
   """
-
-  def handle_cast( {:send_message, name, message},
-                   %Game{ players: players,
-                          states: []} = state) do
-    broadcast(players, name, message)
-    {:noreply, state}          
-  end
-
   def handle_cast( {:send_message, name, message},
                    %Game{ players: players,
                           states: [{_, answer, _}|rest],
@@ -177,7 +179,6 @@ defmodule Server.Worker do
         end
       false ->
         # send only to user if the answer is 'similar' to the desired one
-        # what I define as 'similar' is another topic.
         if Levenstein.are_similar?( message, answer ) do
           registered_node = Map.get(players, name)
           send_message(registered_node, "GameServer", "Your answer is close! Try again!")
@@ -187,6 +188,9 @@ defmodule Server.Worker do
       end
   end
 
+  @doc """
+    Broadcast a hint regarding the current question, if any, to all active players
+  """
   def handle_cast(:hint,
                   %Game{states: [{_,_,[]}|_],
                         players: players} = state) do
@@ -195,6 +199,9 @@ defmodule Server.Worker do
      {:noreply, state}
   end
 
+  @doc """
+    Broadcast a hint regarding the current question, if any, to all active players
+  """
   def handle_cast(:hint,
                   %Game{states: [{question,answer,[hint|hints]}|rest],
                         players: players} = state) do
@@ -203,7 +210,9 @@ defmodule Server.Worker do
      {:noreply, %Game{state | states: [{question,answer, hints}|rest]}}
   end
 
-  ##################################################
+  ##############################
+  ########## PRIVATE ###########
+  ##############################
 
   defp broadcast(receivers, from, message) do
     receivers

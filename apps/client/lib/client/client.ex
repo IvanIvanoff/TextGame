@@ -29,6 +29,9 @@ defmodule Client do
     GenServer.call(@client, :ranking)
   end
 
+  @doc """
+    Query a hint about the current question.
+  """
   def hint do
     GenServer.cast(@client, :hint)
   end
@@ -46,7 +49,8 @@ defmodule Client do
   end
 
   @doc """
-    Send a message to all players
+    Send a message to all players. If the message matches the answer to the
+    current question, points are awarded to the sender.
   """
   def send(message) do
     GenServer.cast(@client, {:send_message, message})

@@ -17,7 +17,9 @@ defmodule Parser do
 
   @doc """
     Parses string, containg a sequence of tuples, each containg three elements -
-    two strings and a list
+    two strings, representing a question and answer and a list of hints
+
+    The strings should not be quoted. 
   """
   def parse(str) do
     parse(str, "", "", "", [], [], :expect_bracket)

@@ -1,6 +1,12 @@
 defmodule Client.Connectivity do
   require Logger
 
+  @doc """
+    Returns the node name. If the node is alive, return the part before '@'
+    If the node is not alive call lift_client() which checks the environment
+    variables TG_CLIENT_NAME and TG_CLIENT_LOCATION. If they do not exist generate
+    a random 5 letter name and use localhost as location
+  """
   def name do
     case Node.alive? do
       true ->
@@ -10,6 +16,14 @@ defmodule Client.Connectivity do
     end
   end
 
+  @doc """
+    Connect the Node to the server Node. The server is configurated by the
+    environment variables TG_SERVER_NAME and TG_SERVER_LOCATION. If they are missing
+    default values "tg_server" and "127.0.0.1" are used.
+
+    Note that the default values for the server coincide with the default values
+    with which the server is started
+  """
   def connect_to_server_node() do
     server_name = System.get_env("TG_SERVER_NAME") || "tg_server"
     server_location = System.get_env("TG_SERVER_LOCATION") || "127.0.0.1"
