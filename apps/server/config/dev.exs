@@ -1,6 +1,6 @@
 use Mix.Config
 
 config :server,
-  repository_url: "git@github.com:IvanIvanoff/textgamestates.git",
-  polling: true, poll_interval: 60_000,
-  posts_folder: ".", assets_path: "assets", meta_divider: "<><><><><><><><>"
+       server_name:       :tg_server,
+       server_location:   "127.0.0.1",
+       reconnect_timeout: 3000

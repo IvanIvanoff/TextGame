@@ -45,12 +45,12 @@ defmodule Levenstein do
 
     if(len_diff > 2) do
       false
-    end
-
-    case distance(str1,str2) do
-      x when x < 2 -> true
-      _ -> false
+    else
+      case distance(str1,str2) do
+        x when x < 2 -> true
+        _ -> false
       end
+    end
   end
 
 

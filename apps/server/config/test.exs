@@ -1,6 +1,5 @@
 use Mix.Config
 
 config :server,
-       repository_url: "git@github.com:IvanIvanoff/textgamestates.git", polling: false, posts_folder: "posts",
-       repository_provider: Blogit.RepositoryProviders.Memory,
-meta_divider: "<><><><><><><><>"
+       server_name: :test_tg_server,
+       server_location: "127.0.0.1"

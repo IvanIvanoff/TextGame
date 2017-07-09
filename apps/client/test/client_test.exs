@@ -1,7 +1,7 @@
 defmodule ClientTest do
   use ExUnit.Case
 
-  @server_name :test_tg_server
+  @server_name Application.get_env(:server, :server_name, :test_tg_server)
 
   setup do
     game_states = [{"What is the capital of Bulgaria?", "Sofia",["Begins with S"]},

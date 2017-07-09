@@ -1,6 +1,11 @@
 defmodule Client.Connectivity do
   require Logger
 
+  @client_location Application.get_env(:client, :client_location, "127.0.0.1")
+
+  @server_name Application.get_env(:client, :server_name, :tg_server)
+  @server_location Application.get_env(:client, :server_location, "127.0.0.1")
+
   @doc """
     Returns the node name. If the node is alive, return the part before '@'
     If the node is not alive call lift_client() which checks the environment
@@ -32,27 +37,21 @@ defmodule Client.Connectivity do
       lift_client()
     end
 
-    Logger.info("Current node is alive? #{Node.alive?}")
-    server_name = System.get_env("TG_SERVER_NAME") || "tg_server"
-    server_location = System.get_env("TG_SERVER_LOCATION") || "127.0.0.1"
-    Logger.info("Try to connect to #{server_name}@#{server_location}")
-    Node.connect(:"#{server_name}@#{server_location}")
+    Logger.info("Try to connect to #{@server_name}@#{@server_location}")
+    Node.connect(:"#{@server_name}@#{@server_location}")
   end
 
   defp lift_client() do
-    name = System.get_env("TG_CLIENT_NAME") || random_name()
-    System.put_env("TG_CLIENT_NAME", name)
-    location = System.get_env("TG_CLIENT_LOCATION") || "127.0.0.1"
+    client_name = Application.get_env(:client, :client_name) || random_name()
+    Logger.info("Lifing #{client_name}@#{@client_location}")
 
-    Logger.info("Lifing #{name}@#{location}")
-
-    case Node.start(:"#{name}@#{location}") do
-      {:ok, pid} when is_pid(pid) -> name
+    case Node.start(:"#{client_name}@#{@client_location}") do
+      {:ok, pid} when is_pid(pid) -> client_name
       _ -> nil
     end
   end
 
-  defp random_name do
+  defp random_name() do
     letters = ~w(a b c d e f g h i j k l m n o p q r s t u v w x y z)
 
     (1..5)
